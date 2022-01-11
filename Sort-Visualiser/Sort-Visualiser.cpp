@@ -8,9 +8,13 @@
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(600, 600), "Sorting Algorithm Visualiser");
-    sf::CircleShape shape(100.f);
-    shape.setFillColor(sf::Color::Green);
+    float scale = 0.666;
+
+    int windowWidth = sf::VideoMode::getDesktopMode().width * scale;
+    int windowHeight = sf::VideoMode::getDesktopMode().height *scale;
+
+    sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), "Sorting Algorithm Visualiser");
+
 
     while (window.isOpen())
     {
@@ -21,8 +25,15 @@ int main()
                 window.close();
         }
 
+        sf::vector2f uiSize(windowWidth, WindowHeight / 20);
+
+        sf::RectangleShape uiBanner(uiSize);
+        uiBanner.setPosition(0, 0);
+        uiBanner.setFillColor(sf::Color::Green);
+
+
         window.clear();
-        window.draw(shape);
+        window.draw(uiBanner);
         window.display();
 
         
@@ -45,14 +56,3 @@ int main()
 
 
 
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
