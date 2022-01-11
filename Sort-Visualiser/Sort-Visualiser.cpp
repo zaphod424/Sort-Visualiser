@@ -4,25 +4,84 @@
 
 #include <iostream>
 
+class Button {
+public:
+    int xpos;
+    int width;
+    std::string name;
+    sf::RectangleShape icon;
+    sf::Color colour;
+    sf::Color textColour;
 
+
+    Button(std::string a, int b, sf::Vector2f buttonSize) {
+
+        name = a;
+        xpos = b;
+        sf::RectangleShape icon1(buttonSize);
+        sf::Color colour = sf::Color::White;
+        sf::Color textColour = sf::Color::Black;
+
+        icon = icon1;
+        icon.setFillColor(colour);
+        icon.setPosition(xpos, 0);
+        icon.setOutlineColor(sf::Color::Black);
+        icon.setOutlineThickness(2);
+
+    }
+};
 
 int main()
 {
-    
-    Window w(0.66);
 
-    while (w.window.isOpen())
+
+    float scale = 0.6;
+
+    int windowWidth = sf::VideoMode::getDesktopMode().width * scale;
+    int windowHeight = sf::VideoMode::getDesktopMode().height * scale;
+
+    sf::Vector2f uiSize(windowWidth, windowHeight / 20);
+    sf::Vector2f buttonSize(windowWidth/10, windowHeight / 20);
+    sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), "Sorting Algorithm Visualiser");
+
+    sf::Font font;
+    if (!font.loadFromFile("arial.ttf"))
+    {
+        std::cout << "Error no font";
+    }
+
+
+    Button rand("Randomise", 0, buttonSize);
+
+    while (window.isOpen())
     {
         sf::Event event;
-        while (w.window.pollEvent(event))
+        while (window.pollEvent(event))
         {
             if (event.type == sf::Event::Closed)
-                w.window.close();
+                window.close();
         }
 
 
+        sf::RectangleShape uiBanner(uiSize);
+        uiBanner.setPosition(0, 0);
+        uiBanner.setFillColor(sf::Color::Green);
+
+        window.clear();
+        window.draw(uiBanner);
 
 
+        window.draw(rand.icon);
+        sf::Text text(rand.name, font);
+        text.setPosition(rand.xpos, 0);
+        text.setFillColor(rand.textColour);
+        window.draw(text);
+
+
+
+
+
+        window.display();
 
 
         
@@ -37,36 +96,8 @@ int main()
 }
 
 
-void draw(Window window1) {
 
-    sf::Vector2f uiSize(window1.width, window1.height / 20);
 
-    sf::RectangleShape uiBanner(uiSize);
-    uiBanner.setPosition(0, 0);
-    uiBanner.setFillColor(sf::Color::Green);
-
-    window1.window.clear();
-    window1.window.draw(uiBanner);
-    window1.window.display();
-
-}
-
-class Window {
-
-    public:
-
-        Window(float scale) {
-            width = sf::VideoMode::getDesktopMode().width * scale;
-            height = sf::VideoMode::getDesktopMode().height * scale;
-            sf::RenderWindow window(sf::VideoMode(width, height), "Sorting Algorithm Visualiser");
-        }
-
-        float scale;
-
-        sf::RenderWindow window;
-        int width = sf::VideoMode::getDesktopMode().width * scale;
-        int height = sf::VideoMode::getDesktopMode().height * scale;
-};
 
 
 
