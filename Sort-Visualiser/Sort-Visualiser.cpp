@@ -51,16 +51,15 @@ int main()
     }
 
     //setting banner parameters
+    sf::Vector2f uiSize(windowWidth, windowHeight / 20);
     sf::RectangleShape uiBanner(uiSize);
     uiBanner.setPosition(0, 0);
     uiBanner.setFillColor(sf::Color::Green);
 
     //setting button parameters
+    sf::Vector2f buttonSize(windowWidth / n_buttons, windowHeight / 20);
     std::string buttonNameList[n_buttons] = { "Randomise", "Inc num bars", "Dec num bars", "Run Bogosort", "Run Bubblesort", "Run Quicksort", "Run Merge sort"};
     std::vector<Button> buttonList;
-
-    sf::Vector2f uiSize(windowWidth, windowHeight / 20);
-    sf::Vector2f buttonSize(windowWidth / n_buttons, windowHeight / 20);
 
     //creating button objects
     for (int i = 0; i < n_buttons; i++) { 
@@ -81,7 +80,7 @@ int main()
 
 
 
-        //window clear_draw_display 
+        //start clear_draw_display 
         window.clear();
 
         //drawing banner
