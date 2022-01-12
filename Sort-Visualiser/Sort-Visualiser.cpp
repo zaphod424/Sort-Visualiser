@@ -37,17 +37,18 @@ public:
 
 class Bar {
 public:
-    int value, xpos, ypos;
+    int value, xpos, ypos, order;
     sf::Color colour;
     sf::RectangleShape icon;
 
-    Bar(sf::Vector2f barSize, int x, int y) {
+    Bar(sf::Vector2f barSize,int o, int x, int y) {
 
 
         
         value = 10;
         xpos = x;
         ypos = y;
+        order = o;
         barSize.y = barSize.y * value;
         sf::RectangleShape icon1(barSize);
         colour = sf::Color::White;
@@ -118,17 +119,18 @@ int main()
     //setting bar parameters
 
     int n_bars = 100;
-    
+    int spacing = 4 / (n_bars / 100);
+    std::cout << spacing << "\n";
 
     int ypos = windowHeight * 0.9;
-    sf::Vector2f barSize(((windowWidth * 0.9) /n_bars) - 4 , (ypos - (uiSize.y * 2)) /MAX_VAL);
+    sf::Vector2f barSize(((windowWidth * 0.9) /n_bars) - spacing , (ypos - (uiSize.y * 2)) /MAX_VAL);
     std::vector<Bar> barList;
     
 
     //creating bar objects
     for (int i = 0; i < n_bars; i++) {
         
-        Bar newBar(barSize, ((windowWidth * 0.05)) + (barSize.x + 4)*i, ypos);
+        Bar newBar(barSize,i, ((windowWidth * 0.05)) + (barSize.x + spacing)*i, ypos);
         barList.push_back(newBar);
     }
     barList = randomise(barList);
@@ -224,10 +226,18 @@ int main()
 std::vector<Bar> randomise(std::vector<Bar> list) {
 
 
-    for (auto i = list.begin(); i != list.end(); i++)
+    for (auto i = list.begin(); i != list.end(); i++) {
 
-        (*i).change_value((rand() % (MAX_VAL - 1)) + 1);
+        (*i).change_value((rand() % MAX_VAL) + 1);
+        
+        /*
+        if ((*i).order %2 == 0)
+            (*i).change_value((*i).order);
+        else
+            (*i).change_value(MAX_VAL - (*i).order);
+        */
 
+    }
     return list;
 }
 
