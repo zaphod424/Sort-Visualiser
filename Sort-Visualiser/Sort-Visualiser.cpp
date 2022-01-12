@@ -24,7 +24,7 @@ public:
 
         icon = icon1;
         icon.setFillColor(colour);
-        icon.setPosition(xpos, 0);
+        icon.setPosition(xpos, 2);
         icon.setOutlineColor(sf::Color::Black);
         icon.setOutlineThickness(2);
 
@@ -34,25 +34,36 @@ public:
 int main()
 {
 
-
+    const int n_buttons = 7;
     float scale = 0.6;
 
     int windowWidth = sf::VideoMode::getDesktopMode().width * scale;
     int windowHeight = sf::VideoMode::getDesktopMode().height * scale;
 
-    sf::Vector2f uiSize(windowWidth, windowHeight / 20);
-    sf::Vector2f buttonSize(windowWidth/10, windowHeight / 20);
-    sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), "Sorting Algorithm Visualiser");
+
+    
 
     sf::Font font;
-    if (!font.loadFromFile("arial.ttf"))
+    if (!font.loadFromFile("arial.ttf")) // loading font
     {
         std::cout << "Error no font";
     }
 
+    //setting button parameters
+    std::string buttonNameList[n_buttons] = { "Randomise", "Inc num bars", "Dec num bars", "Run Bogosort", "Run Bubblesort", "Run Quicksort", "Run Merge sort"};
+    std::vector<Button> buttonList;
 
-    Button rand("Randomise", 0, buttonSize);
+    sf::Vector2f uiSize(windowWidth, windowHeight / 20);
+    sf::Vector2f buttonSize(windowWidth / n_buttons, windowHeight / 20);
 
+    //creating button objects
+    for (int i = 0; i < n_buttons; i++) { 
+        Button button(buttonNameList[i], buttonSize.x * i , buttonSize);
+        buttonList.push_back(button);
+    }
+
+    //window loop
+    sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), "Sorting Algorithm Visualiser");
     while (window.isOpen())
     {
         sf::Event event;
@@ -67,23 +78,23 @@ int main()
         uiBanner.setPosition(0, 0);
         uiBanner.setFillColor(sf::Color::Green);
 
+        //window clear_draw_display 
         window.clear();
+
         window.draw(uiBanner);
 
+        for (int i = 0; i < n_buttons; i++) {
 
-        window.draw(rand.icon);
-        sf::Text text(rand.name, font);
-        text.setPosition(rand.xpos, 0);
-        text.setFillColor(rand.textColour);
-        window.draw(text);
+            window.draw(buttonList[i].icon);
+            sf::Text text(buttonList[i].name, font);
+            text.setPosition(buttonList[i].xpos, 0);
+            text.setFillColor(buttonList[i].textColour);
+            window.draw(text);
 
-
-
-
-
-        window.display();
+        }
 
 
+        window.display();       //end of clear_draw_display
         
 
 
