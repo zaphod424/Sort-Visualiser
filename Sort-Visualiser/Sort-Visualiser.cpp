@@ -37,17 +37,23 @@ int main()
     const int n_buttons = 7;
     float scale = 0.6;
 
+    //setting window parameters
     int windowWidth = sf::VideoMode::getDesktopMode().width * scale;
     int windowHeight = sf::VideoMode::getDesktopMode().height * scale;
 
 
     
-
+    // loading font
     sf::Font font;
-    if (!font.loadFromFile("arial.ttf")) // loading font
+    if (!font.loadFromFile("arial.ttf")) 
     {
         std::cout << "Error no font";
     }
+
+    //setting banner parameters
+    sf::RectangleShape uiBanner(uiSize);
+    uiBanner.setPosition(0, 0);
+    uiBanner.setFillColor(sf::Color::Green);
 
     //setting button parameters
     std::string buttonNameList[n_buttons] = { "Randomise", "Inc num bars", "Dec num bars", "Run Bogosort", "Run Bubblesort", "Run Quicksort", "Run Merge sort"};
@@ -74,15 +80,14 @@ int main()
         }
 
 
-        sf::RectangleShape uiBanner(uiSize);
-        uiBanner.setPosition(0, 0);
-        uiBanner.setFillColor(sf::Color::Green);
 
         //window clear_draw_display 
         window.clear();
 
+        //drawing banner
         window.draw(uiBanner);
 
+        //drawing buttons
         for (int i = 0; i < n_buttons; i++) {
 
             window.draw(buttonList[i].icon);
