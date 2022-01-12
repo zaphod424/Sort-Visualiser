@@ -139,24 +139,28 @@ int main()
     sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), "Sorting Algorithm Visualiser");
     while (window.isOpen())
     {
-        
+        //events
         sf::Event event;
         while (window.pollEvent(event))
         {
+            //window close
             if (event.type == sf::Event::Closed)
                 window.close();
 
+            //button clicks
             if (event.type == sf::Event::MouseButtonPressed) {
 
                 if (event.mouseButton.button == sf::Mouse::Left && event.mouseButton.y < uiSize.y) {
                     std::string buttonPressed;
 
+                    //identify which button pressed
                     for (int i = 0; i < n_buttons; i++) {
 
                         if (event.mouseButton.x > buttonList[i].xpos && event.mouseButton.x < buttonList[i].xpos + buttonSize.x)
                             buttonPressed = buttonList[i].name;
                     }
 
+                    
                     if (buttonPressed == "Randomise") {
 
                         //std::cout << "Randomised\n";
