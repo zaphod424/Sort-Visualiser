@@ -6,6 +6,8 @@
 #include <random>
 #include <ctime>
 
+#define MAX_VAL 1000
+
 class Button {
 public:
     int xpos;
@@ -39,11 +41,11 @@ public:
     sf::Color colour;
     sf::RectangleShape icon;
 
-    Bar(int v, sf::Vector2f barSize, int x, int y) {
+    Bar(sf::Vector2f barSize, int x, int y) {
 
 
         
-        value = v;
+        value = 10;
         xpos = x;
         ypos = y;
         barSize.y = barSize.y * value;
@@ -54,6 +56,16 @@ public:
         icon.setPosition(xpos, ypos-barSize.y);
     };
 
+    void change_value(int newval) {
+
+        sf::Vector2f size = icon.getSize();
+        size.y = (size.y / value) * newval;
+        this->icon.setPosition(xpos, ypos - size.y);
+        this->icon.setSize(size);
+        this->value = newval;
+
+    }
+
     void reposition(int x) {
 
         xpos = x;
@@ -62,12 +74,14 @@ public:
 
 };
 
+std::vector<Bar> randomise(std::vector<Bar> input);
+
 int main()
 {
 
     const int n_buttons = 7;
     float scale = 0.6;
-    int max_val = 10;
+
 
     //setting window parameters
     int windowWidth = sf::VideoMode::getDesktopMode().width * scale;
@@ -103,34 +117,62 @@ int main()
 
     //setting bar parameters
 
-    int n_bars = 6;
+    int n_bars = 100;
     
 
     int ypos = windowHeight * 0.9;
-    sf::Vector2f barSize(((windowWidth * 0.9) /n_bars) - 4 , (ypos - (uiSize.y * 2)) /max_val );
-
+    sf::Vector2f barSize(((windowWidth * 0.9) /n_bars) - 4 , (ypos - (uiSize.y * 2)) /MAX_VAL);
     std::vector<Bar> barList;
     
 
     //creating bar objects
     for (int i = 0; i < n_bars; i++) {
-            
-        int value = rand() % max_val;
-        Bar newBar(value, barSize, ((windowWidth * 0.05)) + (barSize.x + 4)*i, ypos);
+        
+        Bar newBar(barSize, ((windowWidth * 0.05)) + (barSize.x + 4)*i, ypos);
         barList.push_back(newBar);
     }
+    barList = randomise(barList);
+
 
 
     //window loop
     sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), "Sorting Algorithm Visualiser");
     while (window.isOpen())
     {
+        
         sf::Event event;
         while (window.pollEvent(event))
         {
             if (event.type == sf::Event::Closed)
                 window.close();
+
+            if (event.type == sf::Event::MouseButtonPressed) {
+
+                if (event.mouseButton.button == sf::Mouse::Left && event.mouseButton.y < uiSize.y) {
+                    std::string buttonPressed;
+
+                    for (int i = 0; i < n_buttons; i++) {
+
+                        if (event.mouseButton.x > buttonList[i].xpos && event.mouseButton.x < buttonList[i].xpos + buttonSize.x)
+                            buttonPressed = buttonList[i].name;
+                    }
+
+                    if (buttonPressed == "Randomise") {
+
+                        //std::cout << "Randomised\n";
+                        barList = randomise(barList);
+
+                    }
+
+                }
+
+
+
+            }
         }
+
+        
+
 
 
 
@@ -172,6 +214,17 @@ int main()
     }
 
     return 0;
+}
+
+
+std::vector<Bar> randomise(std::vector<Bar> list) {
+
+
+    for (auto i = list.begin(); i != list.end(); i++)
+
+        (*i).change_value((rand() % (MAX_VAL - 1)) + 1);
+
+    return list;
 }
 
 
