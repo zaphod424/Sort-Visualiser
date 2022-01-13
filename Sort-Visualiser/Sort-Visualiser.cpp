@@ -13,6 +13,7 @@ public:
     int xpos;
     int width;
     std::string name;
+    std::string orig_name;
     sf::RectangleShape icon;
     sf::Color colour;
     sf::Color textColour;
@@ -22,6 +23,7 @@ public:
     Button(std::string a, int b, sf::Vector2f buttonSize) {
 
         name = a;
+        orig_name = a;
         xpos = b;
         sf::RectangleShape icon1(buttonSize);
         colour = sf::Color::White;
@@ -84,9 +86,10 @@ public:
 };
 
 void update(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList);
+bool stop(sf::RenderWindow* window, std::vector<Button>* buttonList);
 void randomise(std::vector<Bar> *list);
 void mergesort(sf::RenderWindow *window, std::vector<Button> *buttonList, std::vector<Bar> *barList);
-void quicksort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList, std::vector<Bar>::iterator lo, std::vector<Bar>::iterator hi);
+bool quicksort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList, std::vector<Bar>::iterator lo, std::vector<Bar>::iterator hi);
 std::vector<Bar>::iterator partition(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList, std::vector<Bar>::iterator lo, std::vector<Bar>::iterator hi);
 
 int main()
@@ -131,9 +134,11 @@ int main()
 
     //setting bar parameters
 
-    int n_bars = 100;
-    int spacing = 4 / (n_bars / 100);
-    std::cout << spacing << "\n";
+    int n_bars = 5;
+    int spacing = 4;
+    if (n_bars >=100)
+        spacing = spacing / (n_bars / 100);
+    //std::cout << spacing << "\n";
 
     int ypos = windowHeight * 0.9;
     sf::Vector2f barSize(((windowWidth * 0.9) /n_bars) - spacing , (ypos - (uiSize.y * 2)) /MAX_VAL);
@@ -141,6 +146,8 @@ int main()
     
     
     //creating bar objects
+    Bar bar0(barSize, -1, -1, -1);
+    barList.insert(barList.begin(), bar0);
     for (int i = 0; i < n_bars; i++) {
         
         Bar newBar(barSize,i, ((windowWidth * 0.05)) + (barSize.x + spacing)*i, ypos);
@@ -169,10 +176,14 @@ int main()
                     std::string buttonPressed;
 
                     //identify which button pressed
-                    for (int i = 0; i < n_buttons; i++) {
+                    std::vector<Button>::iterator button_it;
 
-                        if (event.mouseButton.x > buttonList[i].xpos && event.mouseButton.x < buttonList[i].xpos + buttonSize.x)
-                            buttonPressed = buttonList[i].name;
+                    for (auto i = (buttonList).begin(); i != (buttonList).end(); i++) {
+
+                        if (event.mouseButton.x > (*i).xpos && event.mouseButton.x < (*i).xpos + buttonSize.x) {
+                            buttonPressed = (*i).name;
+                            button_it = i;
+                        }
                     }
 
                     
@@ -192,10 +203,12 @@ int main()
 
                     if (buttonPressed == "Run Quicksort") {
 
-                        Bar newBar(barSize, -1, -1, -1);
-                        barList.insert(barList.begin(), newBar);
+                        (*button_it).name = "Stop";
+
                         //std::cout << "Randomised\n";
                         quicksort(&window, &buttonList, &barList, barList.begin() +1, barList.end());
+
+                        (*button_it).name = (*button_it).orig_name;
 
                     }
 
@@ -289,24 +302,29 @@ void mergesort(sf::RenderWindow *window,  std::vector<Button> *buttonList, std::
 
 }
 
-void quicksort(sf::RenderWindow *window, std::vector<Button> *buttonList, std::vector<Bar> *barList, std::vector<Bar>::iterator lo, std::vector<Bar>::iterator hi) {
+bool quicksort(sf::RenderWindow *window, std::vector<Button> *buttonList, std::vector<Bar> *barList, std::vector<Bar>::iterator lo, std::vector<Bar>::iterator hi) {
 
     if (lo < hi) {
 
         std::vector<Bar>::iterator pivot = partition(window, buttonList, barList, lo, hi);
 
-        quicksort(window, buttonList, barList, lo, pivot); 
-        quicksort(window, buttonList, barList, pivot + 1, hi);
+        if (pivot == (*barList).begin())
+            return true;
+
+        if (quicksort(window, buttonList, barList, lo, pivot))
+            return true;
+        if (quicksort(window, buttonList, barList, pivot + 1, hi))
+            return true;
 
     }
     
-
+    return false;
 }
 
 std::vector<Bar>::iterator partition(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList, std::vector<Bar>::iterator lo, std::vector<Bar>::iterator hi) {
 
     std::vector<Bar>::iterator pivot = lo + (hi - lo) / 2;
-    (*pivot).change_colour(sf::Color::Yellow);
+    (*pivot).change_colour(sf::Color::Blue);
     //std::cout << "pivot is " << (*pivot).value <<"\n";
     //(*pivot).change_value(666);
     
@@ -317,6 +335,10 @@ std::vector<Bar>::iterator partition(sf::RenderWindow* window, std::vector<Butto
 
     while (1) {
 
+        if (stop(window, buttonList)) {
+            (*pivot).change_colour(sf::Color::White);
+            return (*barList).begin();
+        }
 
 
         do {
@@ -350,7 +372,7 @@ std::vector<Bar>::iterator partition(sf::RenderWindow* window, std::vector<Butto
 
         do {
             elapsed1 = clock.getElapsedTime();
-        } while (elapsed1.asSeconds() < 0.01);
+        } while (elapsed1.asSeconds() < 0.0);
 
         
 
@@ -364,7 +386,7 @@ std::vector<Bar>::iterator partition(sf::RenderWindow* window, std::vector<Butto
 
         do {
             elapsed2 = clock.getElapsedTime();
-        } while (elapsed2.asSeconds() < 0.01);
+        } while (elapsed2.asSeconds() < 0.0);
 
         if (i == pivot) {
             pivot = j;
@@ -375,13 +397,48 @@ std::vector<Bar>::iterator partition(sf::RenderWindow* window, std::vector<Butto
 
         (*i).change_colour(sf::Color::White);
         (*j).change_colour(sf::Color::White);
-        (*pivot).change_colour(sf::Color::Yellow);
+        (*pivot).change_colour(sf::Color::Blue);
     }
-
-    return pivot;
 }
 
+bool stop(sf::RenderWindow* window, std::vector<Button>* buttonList) {
 
+    sf::Event event;
+    while ((*window).pollEvent(event))
+    {
+        //window close
+        if (event.type == sf::Event::Closed) {
+            (*window).close();
+            return true;
+        }
+
+        //button clicks
+        if (event.type == sf::Event::MouseButtonPressed) {
+
+            if (event.mouseButton.button == sf::Mouse::Left && event.mouseButton.y < (*buttonList)[0].icon.getSize().y) {
+                std::string buttonPressed;
+
+                //identify which button pressed
+                for (auto i = (*buttonList).begin(); i != (*buttonList).end(); i++) {
+
+                    if (event.mouseButton.x > (*i).xpos && event.mouseButton.x < (*i).xpos + (*i).icon.getSize().x) {
+                        buttonPressed = (*i).name;
+                    }
+                }
+
+
+                if (buttonPressed == "Stop") {
+
+                    //std::cout << "Randomised\n";
+                    return true;
+
+                }
+            }
+        }
+    }
+
+    return false;
+}
 
 
 
