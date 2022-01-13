@@ -16,6 +16,7 @@ public:
     sf::RectangleShape icon;
     sf::Color colour;
     sf::Color textColour;
+    sf::Font font;
 
 
     Button(std::string a, int b, sf::Vector2f buttonSize) {
@@ -75,7 +76,9 @@ public:
 
 };
 
-std::vector<Bar> randomise(std::vector<Bar> input);
+void update(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList);
+void randomise(std::vector<Bar> *list);
+void mergesort(sf::RenderWindow *window, std::vector<Button> *buttonList, std::vector<Bar> *barList);
 
 int main()
 {
@@ -106,12 +109,13 @@ int main()
 
     //setting button parameters
     sf::Vector2f buttonSize(windowWidth / n_buttons, windowHeight / 20);
-    std::string buttonNameList[n_buttons] = { "Randomise", "Inc num bars", "Dec num bars", "Run Bogosort", "Run Bubblesort", "Run Quicksort", "Run Merge sort"};
+    std::string buttonNameList[n_buttons] = { "Randomise", "Inc num bars", "Dec num bars", "Run Bogosort", "Run Bubblesort", "Run Quicksort", "Run Merge Sort"};
     std::vector<Button> buttonList;
 
     //creating button objects
     for (int i = 0; i < n_buttons; i++) { 
         Button button(buttonNameList[i], buttonSize.x * i , buttonSize);
+        button.font = font;
         buttonList.push_back(button);
     }
 
@@ -133,7 +137,7 @@ int main()
         Bar newBar(barSize,i, ((windowWidth * 0.05)) + (barSize.x + spacing)*i, ypos);
         barList.push_back(newBar);
     }
-    barList = randomise(barList);
+    randomise(&barList);
 
 
 
@@ -166,9 +170,17 @@ int main()
                     if (buttonPressed == "Randomise") {
 
                         //std::cout << "Randomised\n";
-                        barList = randomise(barList);
+                        randomise(&barList);
 
                     }
+                    
+                    if (buttonPressed == "Run Merge Sort") {
+
+                        //std::cout << "Randomised\n";
+                        mergesort(&window, &buttonList, &barList);
+
+                    }
+
 
                 }
 
@@ -182,36 +194,8 @@ int main()
 
 
 
-        //start clear_draw_display 
-        window.clear();
-
-        //drawing banner
-        window.draw(uiBanner);
-
-        //drawing buttons
-        for (int i = 0; i < n_buttons; i++) {
-
-            window.draw(buttonList[i].icon);
-            sf::Text text(buttonList[i].name, font);
-            text.setPosition(buttonList[i].xpos, 0);
-            text.setFillColor(buttonList[i].textColour);
-            window.draw(text);
-
-        }
-
-        //drawing bars
-
-        for (int i = 0; i < n_bars; i++) {
-
-            window.draw(barList[i].icon);
-        }
-
- 
-
-
-
-        window.display();       //end of clear_draw_display
         
+        update(&window, &buttonList, &barList);
 
 
 
@@ -222,11 +206,46 @@ int main()
     return 0;
 }
 
+void update(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList) {
 
-std::vector<Bar> randomise(std::vector<Bar> list) {
+
+    //start clear_draw_display 
+    (*window).clear();
+
+    //drawing banner
+    //(*window).draw(uiBanner);
+
+    //drawing buttons
+    for (auto i = (*buttonList).begin(); i != (*buttonList).end(); i++) {
+
+        (*window).draw((*i).icon);
+        sf::Text text((*i).name, (*i).font);
+        text.setPosition((*i).xpos, 0);
+        text.setFillColor((*i).textColour);
+        (*window).draw(text);
+
+    }
+
+    //drawing bars
+
+    for (auto i = (*barList).begin(); i != (*barList).end(); i++) {
+
+        (*window).draw((*i).icon);
+    }
 
 
-    for (auto i = list.begin(); i != list.end(); i++) {
+
+
+
+    (*window).display();       //end of clear_draw_display
+
+
+}
+
+void randomise(std::vector<Bar> *list) {
+
+
+    for (auto i = (*list).begin(); i != (*list).end(); i++) {
 
         (*i).change_value((rand() % MAX_VAL) + 1);
         
@@ -238,8 +257,18 @@ std::vector<Bar> randomise(std::vector<Bar> list) {
         */
 
     }
-    return list;
 }
+
+void mergesort(sf::RenderWindow *window,  std::vector<Button> *buttonList, std::vector<Bar> *barList) {
+
+    
+    
+
+
+}
+
+
+
 
 
 
