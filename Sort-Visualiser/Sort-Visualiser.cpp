@@ -68,6 +68,13 @@ public:
 
     }
 
+    void change_colour(sf::Color newcol) {
+
+        this->icon.setFillColor(newcol);
+        this->colour = newcol;
+
+    }
+
     void reposition(int x) {
 
         xpos = x;
@@ -79,6 +86,8 @@ public:
 void update(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList);
 void randomise(std::vector<Bar> *list);
 void mergesort(sf::RenderWindow *window, std::vector<Button> *buttonList, std::vector<Bar> *barList);
+void quicksort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList, std::vector<Bar>::iterator lo, std::vector<Bar>::iterator hi);
+std::vector<Bar>::iterator partition(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList, std::vector<Bar>::iterator lo, std::vector<Bar>::iterator hi);
 
 int main()
 {
@@ -130,7 +139,7 @@ int main()
     sf::Vector2f barSize(((windowWidth * 0.9) /n_bars) - spacing , (ypos - (uiSize.y * 2)) /MAX_VAL);
     std::vector<Bar> barList;
     
-
+    
     //creating bar objects
     for (int i = 0; i < n_bars; i++) {
         
@@ -178,6 +187,15 @@ int main()
 
                         //std::cout << "Randomised\n";
                         mergesort(&window, &buttonList, &barList);
+
+                    }
+
+                    if (buttonPressed == "Run Quicksort") {
+
+                        Bar newBar(barSize, -1, -1, -1);
+                        barList.insert(barList.begin(), newBar);
+                        //std::cout << "Randomised\n";
+                        quicksort(&window, &buttonList, &barList, barList.begin() +1, barList.end());
 
                     }
 
@@ -261,13 +279,107 @@ void randomise(std::vector<Bar> *list) {
 
 void mergesort(sf::RenderWindow *window,  std::vector<Button> *buttonList, std::vector<Bar> *barList) {
 
-    
+    //recursive
+
+
+
+
     
 
 
 }
 
+void quicksort(sf::RenderWindow *window, std::vector<Button> *buttonList, std::vector<Bar> *barList, std::vector<Bar>::iterator lo, std::vector<Bar>::iterator hi) {
 
+    if (lo < hi) {
+
+        std::vector<Bar>::iterator pivot = partition(window, buttonList, barList, lo, hi);
+
+        quicksort(window, buttonList, barList, lo, pivot); 
+        quicksort(window, buttonList, barList, pivot + 1, hi);
+
+    }
+    
+
+}
+
+std::vector<Bar>::iterator partition(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList, std::vector<Bar>::iterator lo, std::vector<Bar>::iterator hi) {
+
+    std::vector<Bar>::iterator pivot = lo + (hi - lo) / 2;
+    (*pivot).change_colour(sf::Color::Yellow);
+    //std::cout << "pivot is " << (*pivot).value <<"\n";
+    //(*pivot).change_value(666);
+    
+    std::vector<Bar>::iterator i = lo-1;
+    std::vector<Bar>::iterator j = hi;
+
+
+
+    while (1) {
+
+
+
+        do {
+            if (i!= pivot)
+                i = i + 1;
+        } while ((*i).value < (*pivot).value);
+
+        do {
+            if (j != pivot)
+                j = j - 1;
+        } while ((*j).value > (*pivot).value);
+
+
+        if (i >= j) {
+            (*pivot).change_colour(sf::Color::White);
+            return pivot;
+        }
+
+        //swap A[i] and A[j]
+        int ival = (*i).value;
+        int jval = (*j).value;
+
+
+
+        (*i).change_colour(sf::Color::Red);
+        (*j).change_colour(sf::Color::Red);
+
+        update(window, buttonList, barList);
+        sf::Clock clock;
+        sf::Time elapsed1;
+
+        do {
+            elapsed1 = clock.getElapsedTime();
+        } while (elapsed1.asSeconds() < 0.01);
+
+        
+
+        (*i).change_value(jval);
+        (*j).change_value(ival);
+
+        update(window, buttonList, barList);
+        
+        clock.restart();
+        sf::Time elapsed2;
+
+        do {
+            elapsed2 = clock.getElapsedTime();
+        } while (elapsed2.asSeconds() < 0.01);
+
+        if (i == pivot) {
+            pivot = j;
+        }
+        else if (j == pivot) {
+            pivot = i;
+        }
+
+        (*i).change_colour(sf::Color::White);
+        (*j).change_colour(sf::Color::White);
+        (*pivot).change_colour(sf::Color::Yellow);
+    }
+
+    return pivot;
+}
 
 
 
