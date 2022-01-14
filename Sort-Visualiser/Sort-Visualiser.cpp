@@ -90,6 +90,7 @@ bool stop(sf::RenderWindow* window, std::vector<Button>* buttonList);
 void randomise(std::vector<Bar> *list);
 void mergesort(sf::RenderWindow *window, std::vector<Button> *buttonList, std::vector<Bar> *barList);
 bool quicksort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList, std::vector<Bar>::iterator lo, std::vector<Bar>::iterator hi);
+bool bogosort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList);
 std::vector<Bar>::iterator partition(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList, std::vector<Bar>::iterator lo, std::vector<Bar>::iterator hi);
 
 int main()
@@ -134,7 +135,7 @@ int main()
 
     //setting bar parameters
 
-    int n_bars = 5;
+    int n_bars = 4;
     int spacing = 4;
     if (n_bars >=100)
         spacing = spacing / (n_bars / 100);
@@ -206,7 +207,18 @@ int main()
                         (*button_it).name = "Stop";
 
                         //std::cout << "Randomised\n";
-                        quicksort(&window, &buttonList, &barList, barList.begin() +1, barList.end());
+                        quicksort(&window, &buttonList, &barList, barList.begin() + 1, barList.end());
+
+                        (*button_it).name = (*button_it).orig_name;
+
+                    }
+
+                    if (buttonPressed == "Run Bogosort") {
+
+                        (*button_it).name = "Stop";
+
+                        //std::cout << "Randomised\n";
+                        bogosort(&window, &buttonList, &barList);
 
                         (*button_it).name = (*button_it).orig_name;
 
@@ -398,6 +410,51 @@ std::vector<Bar>::iterator partition(sf::RenderWindow* window, std::vector<Butto
         (*i).change_colour(sf::Color::White);
         (*j).change_colour(sf::Color::White);
         (*pivot).change_colour(sf::Color::Blue);
+    }
+}
+
+bool bogosort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList) {
+
+    while (1) {
+
+        //check if sorted
+        bool sorted = true;
+        for (auto i = (*barList).begin() + 2; i != (*barList).end(); i++) {
+            if ((*i).value < (*(i - 1)).value)
+                sorted = false;
+        }
+
+ 
+        if (sorted)
+            return false;
+
+        //check if interrupted
+        if (stop(window, buttonList)) 
+            return true;
+
+        //create temp bar list
+        std::vector<Bar> temp_bar_list;
+        for (auto i = (*barList).begin() + 1; i != (*barList).end(); i++) {
+            (*i).change_colour(sf::Color::Red);
+            temp_bar_list.push_back(*i);
+        }
+
+        //update 1
+        update(window, buttonList, barList);
+
+
+        //randomise order
+        for (auto i = (*barList).begin() + 1; i != (*barList).end(); i++) {
+            int rand_int = rand() % temp_bar_list.size();
+            (*i).change_value(temp_bar_list[rand_int].value);
+            temp_bar_list.erase(temp_bar_list.begin() + rand_int);
+            (*i).change_colour(sf::Color::White);
+        }
+
+        //update 2
+        update(window, buttonList, barList);
+
+
     }
 }
 
