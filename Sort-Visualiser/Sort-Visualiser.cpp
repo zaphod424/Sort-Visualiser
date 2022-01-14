@@ -421,7 +421,7 @@ void bogosort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::ve
         (*i).change_colour(sf::Color::Red);
     }
 
-    //loop
+
     while (1) {
 
         //check if sorted
@@ -453,7 +453,6 @@ void bogosort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::ve
             int rand_int = rand() % temp_bar_list.size();
             (*i).change_value(temp_bar_list[rand_int].value);
             temp_bar_list.erase(temp_bar_list.begin() + rand_int);
-            (*i).change_colour(sf::Color::White);
         }
 
         //update 
@@ -463,6 +462,10 @@ void bogosort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::ve
     }
 
     //reset colour
+    for (auto i = (*barList).begin() + 1; i != (*barList).end(); i++) {
+        (*i).change_colour(sf::Color::White);
+    }
+
 
     return;
 }
