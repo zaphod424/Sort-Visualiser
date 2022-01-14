@@ -90,7 +90,7 @@ bool stop(sf::RenderWindow* window, std::vector<Button>* buttonList);
 void randomise(std::vector<Bar> *list);
 void mergesort(sf::RenderWindow *window, std::vector<Button> *buttonList, std::vector<Bar> *barList);
 bool quicksort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList, std::vector<Bar>::iterator lo, std::vector<Bar>::iterator hi);
-bool bogosort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList);
+void bogosort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList);
 std::vector<Bar>::iterator partition(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList, std::vector<Bar>::iterator lo, std::vector<Bar>::iterator hi);
 
 int main()
@@ -135,7 +135,7 @@ int main()
 
     //setting bar parameters
 
-    int n_bars = 4;
+    int n_bars = 400;
     int spacing = 4;
     if (n_bars >=100)
         spacing = spacing / (n_bars / 100);
@@ -413,8 +413,15 @@ std::vector<Bar>::iterator partition(sf::RenderWindow* window, std::vector<Butto
     }
 }
 
-bool bogosort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList) {
+void bogosort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList) {
 
+
+    //set colour to red
+    for (auto i = (*barList).begin() + 1; i != (*barList).end(); i++) {
+        (*i).change_colour(sf::Color::Red);
+    }
+
+    //loop
     while (1) {
 
         //check if sorted
@@ -426,21 +433,19 @@ bool bogosort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::ve
 
  
         if (sorted)
-            return false;
+            break;
 
         //check if interrupted
-        if (stop(window, buttonList)) 
-            return true;
+        if (stop(window, buttonList))
+            break;
 
         //create temp bar list
         std::vector<Bar> temp_bar_list;
         for (auto i = (*barList).begin() + 1; i != (*barList).end(); i++) {
-            (*i).change_colour(sf::Color::Red);
             temp_bar_list.push_back(*i);
         }
 
-        //update 1
-        update(window, buttonList, barList);
+
 
 
         //randomise order
@@ -451,11 +456,15 @@ bool bogosort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::ve
             (*i).change_colour(sf::Color::White);
         }
 
-        //update 2
+        //update 
         update(window, buttonList, barList);
 
 
     }
+
+    //reset colour
+
+    return;
 }
 
 bool stop(sf::RenderWindow* window, std::vector<Button>* buttonList) {
