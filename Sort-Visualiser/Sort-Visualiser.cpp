@@ -40,18 +40,18 @@ public:
 
 class Bar {
 public:
-    int value, xpos, ypos, order;
+    int value, xpos, ypos, trueValue;
     sf::Color colour;
     sf::RectangleShape icon;
 
-    Bar(sf::Vector2f barSize,int o, int x, int y) {
+    Bar(sf::Vector2f barSize, int x, int y) {
 
 
         
         value = 10;
         xpos = x;
         ypos = y;
-        order = o;
+        trueValue = 10;
         barSize.y = barSize.y * value;
         sf::RectangleShape icon1(barSize);
         colour = sf::Color::White;
@@ -60,7 +60,7 @@ public:
         icon.setPosition(xpos, ypos-barSize.y);
     };
 
-    void change_value(int newval) {
+    void changeValue(int newval) {
 
         sf::Vector2f size = icon.getSize();
         size.y = (size.y / value) * newval;
@@ -70,7 +70,7 @@ public:
 
     }
 
-    void change_colour(sf::Color newcol) {
+    void changeColour(sf::Color newcol) {
 
         this->icon.setFillColor(newcol);
         this->colour = newcol;
@@ -88,6 +88,10 @@ public:
 void update(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList);
 bool stop(sf::RenderWindow* window, std::vector<Button>* buttonList);
 void randomise(std::vector<Bar> *list);
+void hiddenQuicksort(std::vector<Bar>* barList, std::vector<Bar>::iterator lo, std::vector<Bar>::iterator hi);
+bool ordered(std::vector<Bar>* barList, std::vector<Bar>::iterator it);
+
+void bubblesort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList);
 void mergesort(sf::RenderWindow *window, std::vector<Button> *buttonList, std::vector<Bar> *barList);
 bool quicksort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList, std::vector<Bar>::iterator lo, std::vector<Bar>::iterator hi);
 void bogosort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList);
@@ -96,7 +100,7 @@ std::vector<Bar>::iterator partition(sf::RenderWindow* window, std::vector<Butto
 int main()
 {
 
-    const int n_buttons = 7;
+    const int n_buttons = 8;
     float scale = 0.6;
 
 
@@ -122,7 +126,7 @@ int main()
 
     //setting button parameters
     sf::Vector2f buttonSize(windowWidth / n_buttons, windowHeight / 20);
-    std::string buttonNameList[n_buttons] = { "Randomise", "Inc num bars", "Dec num bars", "Run Bogosort", "Run Bubblesort", "Run Quicksort", "Run Merge Sort"};
+    std::string buttonNameList[n_buttons] = { "Randomise", "Inc num bars", "Dec num bars", "Instant Sort", "Run Bogosort", "Run Bubblesort", "Run Quicksort", "Run Merge Sort"};
     std::vector<Button> buttonList;
 
     //creating button objects
@@ -135,7 +139,7 @@ int main()
 
     //setting bar parameters
 
-    int n_bars = 400;
+    int n_bars = 1000;
     int spacing = 4;
     if (n_bars >=100)
         spacing = spacing / (n_bars / 100);
@@ -147,11 +151,11 @@ int main()
     
     
     //creating bar objects
-    Bar bar0(barSize, -1, -1, -1);
+    Bar bar0(barSize, -1, -1);
     barList.insert(barList.begin(), bar0);
     for (int i = 0; i < n_bars; i++) {
         
-        Bar newBar(barSize,i, ((windowWidth * 0.05)) + (barSize.x + spacing)*i, ypos);
+        Bar newBar(barSize, ((windowWidth * 0.05)) + (barSize.x + spacing)*i, ypos);
         barList.push_back(newBar);
     }
     randomise(&barList);
@@ -194,10 +198,31 @@ int main()
                         randomise(&barList);
 
                     }
+
+                    if (buttonPressed == "Instant Sort") {
+
+                        for (auto i = (barList).begin() + 1; i != (barList).end(); i++) {
+                            (*i).changeColour(sf::Color::White);
+                            (*i).changeValue((*i).trueValue);
+                        }
+
+                    }
+
+
+                    if (buttonPressed == "Run Bubblesort") {
+
+                        (*button_it).name = "Stop";
+
+                        
+                        bubblesort(&window, &buttonList, &barList);
+
+                        (*button_it).name = (*button_it).orig_name;
+
+                    }
                     
                     if (buttonPressed == "Run Merge Sort") {
 
-                        //std::cout << "Randomised\n";
+                        
                         mergesort(&window, &buttonList, &barList);
 
                     }
@@ -206,8 +231,18 @@ int main()
 
                         (*button_it).name = "Stop";
 
-                        //std::cout << "Randomised\n";
-                        quicksort(&window, &buttonList, &barList, barList.begin() + 1, barList.end());
+                        for (auto i = (barList).begin() + 1; i != (barList).end(); i++) 
+                            (*i).changeColour(sf::Color::White);
+                        
+                        if (quicksort(&window, &buttonList, &barList, barList.begin() + 1, barList.end())) {
+                            for (auto i = (barList).begin() + 1; i != (barList).end(); i++) 
+                                (*i).changeColour(sf::Color::White);
+                        }
+                        else {
+                            for (auto i = (barList).begin() + 1; i != (barList).end(); i++) 
+                                (*i).changeColour(sf::Color::Green);
+                        }
+                            
 
                         (*button_it).name = (*button_it).orig_name;
 
@@ -217,7 +252,7 @@ int main()
 
                         (*button_it).name = "Stop";
 
-                        //std::cout << "Randomised\n";
+                        
                         bogosort(&window, &buttonList, &barList);
 
                         (*button_it).name = (*button_it).orig_name;
@@ -290,16 +325,178 @@ void randomise(std::vector<Bar> *list) {
 
     for (auto i = (*list).begin(); i != (*list).end(); i++) {
 
-        (*i).change_value((rand() % MAX_VAL) + 1);
-        
-        /*
-        if ((*i).order %2 == 0)
-            (*i).change_value((*i).order);
-        else
-            (*i).change_value(MAX_VAL - (*i).order);
-        */
+        int randInt = (rand() % MAX_VAL) + 1;
+        (*i).changeValue(randInt);
+        (*i).trueValue = randInt;
+
+        (*i).changeColour(sf::Color::White);
+    }
+
+    hiddenQuicksort(list, (*list).begin() + 1, (*list).end());
+
+}
+
+void hiddenQuicksort(std::vector<Bar>* barList, std::vector<Bar>::iterator lo, std::vector<Bar>::iterator hi) {
+
+    if (lo < hi) {
+
+        //std::vector<Bar>::iterator pivot = partition(window, buttonList, barList, lo, hi);
+
+        std::vector<Bar>::iterator pivot = lo + (hi - lo) / 2;
+
+        std::vector<Bar>::iterator i = lo - 1;
+        std::vector<Bar>::iterator j = hi;
+
+        while (1) {
+
+            do {
+                if (i != pivot)
+                    i = i + 1;
+            } while ((*i).trueValue < (*pivot).trueValue);
+
+            do {
+                if (j != pivot)
+                    j = j - 1;
+            } while ((*j).trueValue > (*pivot).trueValue);
+
+
+            if (i >= j) {
+                break;
+            }
+
+            //swap A[i] and A[j]
+            int ival = (*i).trueValue;
+            int jval = (*j).trueValue;
+
+
+
+            (*i).trueValue = (jval);
+            (*j).trueValue = (ival);
+
+            if (i == pivot) {
+                pivot = j;
+            }
+            else if (j == pivot) {
+                pivot = i;
+            }
+        }
+
+        hiddenQuicksort(barList, lo, pivot);
+
+        hiddenQuicksort(barList, pivot + 1, hi);
+
 
     }
+
+}
+
+bool ordered(std::vector<Bar>* barList, std::vector<Bar>::iterator it) {
+
+    bool check = true;
+
+    //check that each bar below *it is in correct position
+    for (auto i = (*barList).begin() + 1; i != it + 1; i++) {
+        if ((*i).value != (*i).trueValue) {
+            check = false;
+            break;
+        }
+    }
+
+    //if all correct positions below *it, *it is in correct place
+    if (check)
+        return true;
+    else 
+        check = true; 
+    
+    //otherwise reset, and check going up
+    for (auto i = it; i != (*barList).end(); i++) {
+        if ((*i).value != (*i).trueValue) {
+            check = false;
+            break;
+        }
+    }
+
+
+    if (check)
+        return true;
+    else 
+        return false;
+}
+
+void bubblesort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList) {
+
+
+    //set colour to white
+    for (auto i = (*barList).begin() + 1; i != (*barList).end(); i++) {
+        (*i).changeColour(sf::Color::White);
+    }
+
+
+    while (1) {
+
+        //pass through
+        bool sorted = true;
+        bool stopped = false;
+        
+        for (auto i = (*barList).begin() + 1; i != (*barList).end() - 1; i++) {
+            int currentValue;
+            if ((*i).value > (*(i + 1)).value) {
+                
+                (*i).changeColour(sf::Color::Red);
+                (*(i + 1)).changeColour(sf::Color::Red);
+
+                update(window, buttonList, barList);
+                
+                
+                currentValue = (*i).value;
+                (*i).changeValue((*(i + 1)).value);
+                (*(i + 1)).changeValue(currentValue);
+
+                sorted = false;
+            }
+            else {
+                (*i).changeColour(sf::Color::Cyan);
+                (*(i + 1)).changeColour(sf::Color::Cyan);
+
+                update(window, buttonList, barList);
+            }
+
+            //update 
+            update(window, buttonList, barList);
+
+            //resetting colours
+            if (ordered(barList, i))
+                (*i).changeColour(sf::Color::Magenta);
+            else
+                (*i).changeColour(sf::Color::White);
+
+            if (ordered(barList, i+1))
+                (*(i+1)).changeColour(sf::Color::Magenta);
+            else
+                (*(i + 1)).changeColour(sf::Color::White);
+
+
+            //check if interrupted
+            if (stop(window, buttonList)) {
+                stopped = true;
+                break;
+            }
+        }
+
+
+        if (sorted || stopped) {
+            for (auto i = (*barList).begin() + 1; i != (*barList).end(); i++) {
+                if (sorted)
+                    (*i).changeColour(sf::Color::Green);
+                else
+                    (*i).changeColour(sf::Color::White);
+            }
+            break;
+        }
+
+    }
+
+    return;
 }
 
 void mergesort(sf::RenderWindow *window,  std::vector<Button> *buttonList, std::vector<Bar> *barList) {
@@ -329,6 +526,10 @@ bool quicksort(sf::RenderWindow *window, std::vector<Button> *buttonList, std::v
             return true;
 
     }
+    else if (hi < (*barList).end()){
+        (*hi).changeColour(sf::Color::Magenta);
+        (*lo).changeColour(sf::Color::Magenta);
+    }
     
     return false;
 }
@@ -336,9 +537,9 @@ bool quicksort(sf::RenderWindow *window, std::vector<Button> *buttonList, std::v
 std::vector<Bar>::iterator partition(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList, std::vector<Bar>::iterator lo, std::vector<Bar>::iterator hi) {
 
     std::vector<Bar>::iterator pivot = lo + (hi - lo) / 2;
-    (*pivot).change_colour(sf::Color::Blue);
+    (*pivot).changeColour(sf::Color::Blue);
     //std::cout << "pivot is " << (*pivot).value <<"\n";
-    //(*pivot).change_value(666);
+    //(*pivot).changeValue(666);
     
     std::vector<Bar>::iterator i = lo-1;
     std::vector<Bar>::iterator j = hi;
@@ -347,25 +548,79 @@ std::vector<Bar>::iterator partition(sf::RenderWindow* window, std::vector<Butto
 
     while (1) {
 
-        if (stop(window, buttonList)) {
-            (*pivot).change_colour(sf::Color::White);
+        if (stop(window, buttonList)) 
             return (*barList).begin();
-        }
+
+        sf::Clock clock;
+        sf::Time elapsed1;
+        float delay = 0.0;
+
 
 
         do {
-            if (i!= pivot)
+            if (i != pivot) {
+
+                if (i != lo-1)
+                    (*i).changeColour(sf::Color::White);
+
                 i = i + 1;
+
+                if ((*i).value <= (*pivot).value)
+                    (*i).changeColour(sf::Color::Green);
+                else
+                    (*i).changeColour(sf::Color::Red);
+            }
+
+
+            clock.restart();
+            do {
+                elapsed1 = clock.getElapsedTime();
+            } while (elapsed1.asSeconds() < delay);
+            update(window, buttonList, barList);
+
+            if (i != pivot && (*i).value < (*pivot).value) {
+                (*i).changeColour(sf::Color::White);
+            }
+
         } while ((*i).value < (*pivot).value);
 
         do {
-            if (j != pivot)
+            if (j != pivot) {
+
+                if (j != hi)
+                    (*j).changeColour(sf::Color::White);
+
                 j = j - 1;
+
+                if ((*j).value >= (*pivot).value)
+                    (*j).changeColour(sf::Color::Green);
+                else
+                    (*j).changeColour(sf::Color::Red);
+            }
+
+
+            clock.restart();
+            do {
+                elapsed1 = clock.getElapsedTime();
+            } while (elapsed1.asSeconds() < delay);
+            update(window, buttonList, barList);
+
+            if (j != pivot && (*j).value > (*pivot).value) {
+                
+            }
+
         } while ((*j).value > (*pivot).value);
 
 
         if (i >= j) {
-            (*pivot).change_colour(sf::Color::White);
+            (*pivot).changeColour(sf::Color::White);
+            (*i).changeColour(sf::Color::White);
+            (*j).changeColour(sf::Color::White);
+            /*if (pivot == hi || pivot == lo) {
+                (*pivot).changeColour(sf::Color::Magenta);
+                (*i).changeColour(sf::Color::Magenta);
+                (*j).changeColour(sf::Color::Magenta);
+            }*/
             return pivot;
         }
 
@@ -375,30 +630,18 @@ std::vector<Bar>::iterator partition(sf::RenderWindow* window, std::vector<Butto
 
 
 
-        (*i).change_colour(sf::Color::Red);
-        (*j).change_colour(sf::Color::Red);
-
-        update(window, buttonList, barList);
-        sf::Clock clock;
-        sf::Time elapsed1;
+        clock.restart();
 
         do {
             elapsed1 = clock.getElapsedTime();
-        } while (elapsed1.asSeconds() < 0.0);
+        } while (elapsed1.asSeconds() < delay);
 
-        
-
-        (*i).change_value(jval);
-        (*j).change_value(ival);
+        (*i).changeValue(jval);
+        (*j).changeValue(ival);
 
         update(window, buttonList, barList);
         
-        clock.restart();
-        sf::Time elapsed2;
 
-        do {
-            elapsed2 = clock.getElapsedTime();
-        } while (elapsed2.asSeconds() < 0.0);
 
         if (i == pivot) {
             pivot = j;
@@ -407,9 +650,10 @@ std::vector<Bar>::iterator partition(sf::RenderWindow* window, std::vector<Butto
             pivot = i;
         }
 
-        (*i).change_colour(sf::Color::White);
-        (*j).change_colour(sf::Color::White);
-        (*pivot).change_colour(sf::Color::Blue);
+
+
+        (*pivot).changeColour(sf::Color::Blue);
+        (*j).changeColour(sf::Color::Green);
     }
 }
 
@@ -418,7 +662,7 @@ void bogosort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::ve
 
     //set colour to red
     for (auto i = (*barList).begin() + 1; i != (*barList).end(); i++) {
-        (*i).change_colour(sf::Color::Red);
+        (*i).changeColour(sf::Color::Red);
     }
 
 
@@ -451,7 +695,7 @@ void bogosort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::ve
         //randomise order
         for (auto i = (*barList).begin() + 1; i != (*barList).end(); i++) {
             int rand_int = rand() % temp_bar_list.size();
-            (*i).change_value(temp_bar_list[rand_int].value);
+            (*i).changeValue(temp_bar_list[rand_int].value);
             temp_bar_list.erase(temp_bar_list.begin() + rand_int);
         }
 
@@ -463,7 +707,7 @@ void bogosort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::ve
 
     //reset colour
     for (auto i = (*barList).begin() + 1; i != (*barList).end(); i++) {
-        (*i).change_colour(sf::Color::White);
+        (*i).changeColour(sf::Color::White);
     }
 
 
