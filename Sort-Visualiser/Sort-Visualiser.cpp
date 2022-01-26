@@ -442,14 +442,16 @@ void bubblesort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::
         (*i).changeColour(sf::Color::White);
     }
 
+    int pass = 0;
 
     while (1) {
 
         //pass through
         bool sorted = true;
         bool stopped = false;
+        pass++;
         
-        for (auto i = (*barList).begin() + 1; i != (*barList).end() - 1; i++) {
+        for (auto i = (*barList).begin() + 1; i != (*barList).end() - pass; i++) {
             int currentValue;
             if ((*i).value > (*(i + 1)).value) {
                 
@@ -795,8 +797,13 @@ void bogosort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::ve
             break;
 
         //check if interrupted
-        if (stop(window, buttonList))
-            break;
+        if (stop(window, buttonList)) {
+            //reset colour
+            for (auto i = (*barList).begin() + 1; i != (*barList).end(); i++)
+                (*i).changeColour(sf::Color::White);
+
+            return;
+        }
 
         //create temp bar list
         std::vector<Bar> temp_bar_list;
@@ -827,11 +834,8 @@ void bogosort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::ve
 
     }
 
-    //reset colour
-    for (auto i = (*barList).begin() + 1; i != (*barList).end(); i++) {
-        (*i).changeColour(sf::Color::White);
-    }
-
+    for (auto i = (*barList).begin() + 1; i != (*barList).end(); i++)
+        (*i).changeColour(sf::Color::Green);
 
     return;
 }
