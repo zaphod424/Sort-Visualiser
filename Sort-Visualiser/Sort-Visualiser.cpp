@@ -89,11 +89,12 @@ public:
 };
 
 
-
+std::vector<Bar>* createBars(int N, int windowWidth, int windowHeight, std::vector<Bar>* barList);
 void update(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList);
 bool stop(sf::RenderWindow* window, std::vector<Button>* buttonList);
 void randomise(std::vector<Bar> *list);
 void hiddenQuicksort(std::vector<Bar>* barList, std::vector<Bar>::iterator lo, std::vector<Bar>::iterator hi);
+int changeN(sf::RenderWindow* window, std::vector<Button>::iterator button, std::vector<Button>* buttonList, std::vector<Bar>* barList);
 bool ordered(std::vector<Bar>* barList, std::vector<Bar>::iterator it);
 
 void bubblesort(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vector<Bar>* barList);
@@ -132,7 +133,7 @@ int main()
 
     //setting button parameters
     sf::Vector2f buttonSize(windowWidth / n_buttons, windowHeight / 20);
-    std::string buttonNameList[n_buttons] = { "Randomise", "Inc num bars", "Dec num bars", "Instant Sort", "Run Bogosort", "Run Bubblesort", "Run Quicksort", "Run Merge Sort"};
+    std::string buttonNameList[n_buttons] = { "Randomise", "N = ", "Speed", "Instant Sort", "Run Bogosort", "Run Bubblesort", "Run Quicksort", "Run Merge Sort"};
     std::vector<Button> buttonList;
 
     //creating button objects
@@ -145,26 +146,15 @@ int main()
 
     //setting bar parameters
 
-    int n_bars = 1000;
-    int spacing = 4;
-    if (n_bars >=100)
-        spacing = spacing / (n_bars / 100);
-    //std::cout << spacing << "\n";
+    int n_bars = 10;
 
-    int ypos = windowHeight * 0.9;
-    sf::Vector2f barSize(((windowWidth * 0.9) /n_bars) - spacing , (ypos - (uiSize.y * 2)) /MAX_VAL);
-    std::vector<Bar> barList;
-    
-    
-    //creating bar objects
-    Bar bar0(barSize, -1, -1);
-    barList.insert(barList.begin(), bar0);
-    for (int i = 0; i < n_bars; i++) {
-        
-        Bar newBar(barSize, ((windowWidth * 0.05)) + (barSize.x + spacing)*i, ypos);
-        barList.push_back(newBar);
+    for (auto i = (buttonList).begin(); i != (buttonList).end(); i++) {
+        if (i->name == "N = ") {
+            i->name = "N = 10";
+        }
     }
-    randomise(&barList);
+
+    std::vector<Bar>* barList = createBars(n_bars, windowWidth, windowHeight, nullptr);
 
 
 
@@ -184,30 +174,38 @@ int main()
             if (event.type == sf::Event::MouseButtonPressed) {
 
                 if (event.mouseButton.button == sf::Mouse::Left && event.mouseButton.y < uiSize.y) {
-                    std::string buttonPressed;
 
                     //identify which button pressed
-                    std::vector<Button>::iterator button_it;
+                    std::vector<Button>::iterator buttonPressed;
 
                     for (auto i = (buttonList).begin(); i != (buttonList).end(); i++) {
 
                         if (event.mouseButton.x > (*i).xpos && event.mouseButton.x < (*i).xpos + buttonSize.x) {
-                            buttonPressed = (*i).name;
-                            button_it = i;
+
+                            buttonPressed = i;
+                            break;
                         }
                     }
 
                     
-                    if (buttonPressed == "Randomise") {
+                    if (buttonPressed->name == "Randomise") {
 
                         //std::cout << "Randomised\n";
-                        randomise(&barList);
+                        randomise(barList);
 
                     }
 
-                    if (buttonPressed == "Instant Sort") {
+                    if (buttonPressed->orig_name == "N = ") {
+                        
+                        n_bars = changeN(&window, buttonPressed, &buttonList, barList);
 
-                        for (auto i = (barList).begin() + 1; i != (barList).end(); i++) {
+                        if (n_bars > 0)
+                            barList = createBars(n_bars, windowWidth, windowHeight, barList);
+                    }
+
+                    if (buttonPressed->name == "Instant Sort") {
+
+                        for (auto i = barList->begin() + 1; i != barList->end(); i++) {
                             (*i).changeColour(sf::Color::Green);
                             (*i).changeValue((*i).trueValue);
                         }
@@ -215,59 +213,59 @@ int main()
                     }
 
 
-                    if (buttonPressed == "Run Bubblesort") {
+                    if (buttonPressed->name == "Run Bubblesort") {
 
-                        (*button_it).name = "Stop";
+                        buttonPressed->name = "Stop";
 
                         
-                        bubblesort(&window, &buttonList, &barList);
+                        bubblesort(&window, &buttonList, barList);
 
-                        (*button_it).name = (*button_it).orig_name;
+                        buttonPressed->name = buttonPressed->orig_name;
 
                     }
                     
-                    if (buttonPressed == "Run Merge Sort") {
+                    if (buttonPressed->name == "Run Merge Sort") {
 
-                        (*button_it).name = "Stop";
+                        buttonPressed->name = "Stop";
 
-                        for (auto i = (barList).begin() + 1; i != (barList).end(); i++)
+                        for (auto i = barList->begin() + 1; i != barList->end(); i++)
                             (*i).changeColour(sf::Color::White);
 
-                        mergesort(&window, &buttonList, &barList);
+                        mergesort(&window, &buttonList, barList);
 
-                        (*button_it).name = (*button_it).orig_name;
+                        buttonPressed->name = buttonPressed->orig_name;
 
                     }
 
-                    if (buttonPressed == "Run Quicksort") {
+                    if (buttonPressed->name == "Run Quicksort") {
 
-                        (*button_it).name = "Stop";
+                        buttonPressed->name = "Stop";
 
-                        for (auto i = (barList).begin() + 1; i != (barList).end(); i++) 
+                        for (auto i = barList->begin() + 1; i != barList->end(); i++)
                             (*i).changeColour(sf::Color::White);
                         
-                        if (quicksort(&window, &buttonList, &barList, barList.begin() + 1, barList.end())) {
-                            for (auto i = (barList).begin() + 1; i != (barList).end(); i++) 
+                        if (quicksort(&window, &buttonList, barList, barList->begin() + 1, barList->end())) {
+                            for (auto i = barList->begin() + 1; i != barList->end(); i++)
                                 (*i).changeColour(sf::Color::White);
                         }
                         else {
-                            for (auto i = (barList).begin() + 1; i != (barList).end(); i++) 
+                            for (auto i = barList->begin() + 1; i != barList->end(); i++)
                                 (*i).changeColour(sf::Color::Green);
                         }
                             
 
-                        (*button_it).name = (*button_it).orig_name;
+                        buttonPressed->name = buttonPressed->orig_name;
 
                     }
 
-                    if (buttonPressed == "Run Bogosort") {
+                    if (buttonPressed->name == "Run Bogosort") {
 
-                        (*button_it).name = "Stop";
+                        buttonPressed->name = "Stop";
 
                         
-                        bogosort(&window, &buttonList, &barList);
+                        bogosort(&window, &buttonList, barList);
 
-                        (*button_it).name = (*button_it).orig_name;
+                        buttonPressed->name = buttonPressed->orig_name;
 
                     }
 
@@ -285,7 +283,7 @@ int main()
 
 
         
-        update(&window, &buttonList, &barList);
+        update(&window, &buttonList, barList);
 
 
 
@@ -332,6 +330,37 @@ void update(sf::RenderWindow* window, std::vector<Button>* buttonList, std::vect
 
 }
 
+std::vector<Bar>* createBars(int N, int windowWidth, int windowHeight, std::vector<Bar>* barList) {
+
+
+    if (barList)
+        delete barList;
+
+    int spacing = 4;
+    sf::Vector2f uiSize(windowWidth, windowHeight / 20);
+
+    if (N >= 100)
+        spacing = spacing / (N / 100);
+    //std::cout << spacing << "\n";
+
+    int ypos = windowHeight * 0.9;
+    sf::Vector2f barSize(((windowWidth * 0.9) / N) - spacing, (ypos - (uiSize.y * 2)) / MAX_VAL);
+    barList = new std::vector<Bar>;
+
+
+    //creating bar objects
+    Bar bar0(barSize, -1, -1);
+    barList->insert(barList->begin(), bar0);
+    for (int i = 0; i < N; i++) {
+
+        Bar newBar(barSize, ((windowWidth * 0.05)) + (barSize.x + spacing) * i, ypos);
+        barList->push_back(newBar);
+    }
+    randomise(barList);
+
+    return barList;
+}
+
 void randomise(std::vector<Bar> *list) {
 
 
@@ -344,6 +373,106 @@ void randomise(std::vector<Bar> *list) {
     }
 
     hiddenQuicksort(list, (*list).begin() + 1, (*list).end());
+
+}
+
+int changeN(sf::RenderWindow* window, std::vector<Button>::iterator button, std::vector<Button>* buttonList, std::vector<Bar>* barList) {
+
+
+    button->icon.setFillColor(sf::Color::Yellow);
+
+    //save temp value of name and reset name 
+    std::string origName = button->name;
+    button->name = button->orig_name;
+
+    //set current N value
+    int currentN = 0;
+
+
+    while (1) {
+
+        //create event
+        sf::Event event;
+        while (window->pollEvent(event)) {
+
+            //window close
+            if (event.type == sf::Event::Closed) {
+                window->close();
+                return -1;
+            }
+
+            //return if user clicks elsewhere
+            if (event.type == sf::Event::MouseButtonPressed) {
+                //reset colour and name string and return -1 (fail)
+                button->icon.setFillColor(sf::Color::White);
+                button->name = origName;
+                return -1;
+            }
+
+            //typed input
+            if (event.type == sf::Event::TextEntered && button->name.size() < button->orig_name.size() +3) {
+
+                //check if numerical, if so register input
+                char enteredChar = static_cast<char>(event.text.unicode);
+                if (isdigit(enteredChar)) {
+
+                    //if numeric, convert to int, add to name string, and add didgit to currentN
+                    int enteredInt = enteredChar - '0';
+                    button->name.push_back(enteredChar);
+                    currentN = (currentN * 10) + enteredInt;
+
+                }
+            }
+
+            //check for functional key presses
+            if (event.type == sf::Event::KeyPressed) {
+
+                //backspace
+                if (event.key.code == sf::Keyboard::BackSpace) {
+
+                    //if there are digits after the original name string, delete the last one
+                    //and knock it off the value of currentN
+                    if (button->name != button->orig_name) {
+                        button->name.pop_back();
+                        currentN = (currentN - (currentN % 10)) / 10;
+                    }
+                }
+
+                //enter
+                if (event.key.code == sf::Keyboard::Enter) {
+
+                    //check is currentN is valid (cannot be 0 or negative)
+                    if (currentN >= 1) {
+                        //reset colour and return N
+                        button->icon.setFillColor(sf::Color::White);
+                        return currentN;
+                    }
+                    else {
+                        //otherwise, reset colour and name string and return -1 (fail)
+                        button->icon.setFillColor(sf::Color::White);
+                        button->name = origName;
+                        return -1;
+                    }
+                
+
+                }
+
+                //esc
+                if (event.key.code == sf::Keyboard::Escape) {
+                    //reset colour and name and return -1 (fail)
+                    button->icon.setFillColor(sf::Color::White);
+                    button->name = origName;
+                    return -1;
+                    
+                }
+
+            }
+        }
+
+        update(window, buttonList, barList);
+
+    }
+
 
 }
 
